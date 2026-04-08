@@ -145,6 +145,7 @@
             const [customerInfo, setCustomerInfo] = useState({ n: '', ph: '', em: '' });
             const [checkoutError, setCheckoutError] = useState('');
              const [isProcessing, setIsProcessing] = useState(false);
+             const [invalidFields, setInvalidFields] = useState({ n: false, ph: false, em: false });
             const [zoomedImg, setZoomedImg] = useState(null);
             const [designImgError, setDesignImgError] = useState(false);
 
@@ -231,20 +232,38 @@
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
-  const handleCheckout = async () => {
+   const handleCheckout = async () => {
+    // Limpa os erros ao tentar de novo
     setCheckoutError(''); 
+    setInvalidFields({ n: false, ph: false, em: false });
+
+    let hasError = false;
+    const newInvalidFields = { n: false, ph: false, em: false };
 
     if (cart.length === 0) {
-      setCheckoutError('Seu carrinho está vazio.'); return;
+      setCheckoutError('Seu carrinho está vazio.'); 
+      return;
     }
+    
+    // Checa cada campo e marca de vermelho se estiver errado
     if (!validateName(customerInfo.n)) {
-      setCheckoutError('Por favor, insira Nome e Sobrenome.'); return;
+      newInvalidFields.n = true;
+      setCheckoutError('Por favor, insira Nome e Sobrenome.'); 
+      hasError = true;
+    } else if (!validatePhone(customerInfo.ph)) {
+      newInvalidFields.ph = true;
+      setCheckoutError('Insira um celular válido com DDD (Ex: 11988887777).'); 
+      hasError = true;
+    } else if (!validateEmail(customerInfo.em)) {
+      newInvalidFields.em = true;
+      setCheckoutError('Por favor, insira um e-mail válido.'); 
+      hasError = true;
     }
-    if (!validatePhone(customerInfo.ph)) {
-      setCheckoutError('Insira um celular válido com DDD (Ex: 11988887777).'); return;
-    }
-    if (!validateEmail(customerInfo.em)) {
-      setCheckoutError('Por favor, insira um e-mail válido.'); return;
+
+    // Se achou erro, para tudo e atualiza a tela
+    if (hasError) {
+      setInvalidFields(newInvalidFields);
+      return;
     }
 
     setIsProcessing(true);
@@ -293,6 +312,7 @@
     const link = MP_LINKS[cart.length] || MP_LINKS[10];
     window.location.href = link;
   };
+
             const toggleOrderPaid = (orderId) => {
                 const updated = orders.map(o => o.id === orderId ? { ...o, paid: !o.paid } : o);
                 setOrders(updated);
@@ -470,29 +490,66 @@
                                     ))}
                                 </div>
                                 <div className="mt-6 space-y-4 pt-6 border-t border-white/10">
-                                    <input type="text" placeholder="Nome" className="w-full bg-white/5 border border-[#3385ff]/20 p-3 rounded text-sm outline-none" value={customerInfo.n} onChange={e => setCustomerInfo({...customerInfo, n: e.target.value})} />
-                                    <input type="tel" placeholder="WhatsApp" className="w-full bg-white/5 border border-[#3385ff]/20 p-3 rounded text-sm outline-none" value={customerInfo.ph} onChange={e => setCustomerInfo({...customerInfo, ph: e.target.value})} />
-                                    <input type="email" placeholder="E-mail" className="w-full bg-white/5 border border-[#3385ff]/20 p-3 rounded text-sm outline-none" value={customerInfo.em} onChange={e => setCustomerInfo({...customerInfo, em: e.target.value})} />
-                                    <div className="flex justify-between items-center font-bebas text-3xl"><span>TOTAL:</span><span className="text-[#3385ff]">R$ {cart.length * 85},00</span></div>
-                                    <button 
-  onClick={handleCheckout} 
-  disabled={isProcessing}
-  className={`w-full py-4 rounded-lg font-bebas text-2xl font-bold flex justify-center items-center gap-2 transition-all ${
-    isProcessing 
-      ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
-      : 'bg-[#3385ff] text-black hover:brightness-110'
-  }`}
->
-  {isProcessing ? (
-    <>
-      <Icon name="loader-2" className="animate-spin" size={24} />
-      PROCESSANDO...
-    </>
-  ) : (
-    'FINALIZAR COMPRA'
+  
+  {/* Inputs com mudança de cor dinâmica (Vermelho se der erro) */}
+  <input type="text" placeholder="Nome e Sobrenome" 
+    className={`w-full bg-white/5 border p-3 rounded text-sm outline-none transition-colors ${invalidFields.n ? 'border-red-500 bg-red-500/10 text-red-100 placeholder-red-300' : 'border-[#3385ff]/20'}`} 
+    value={customerInfo.n} 
+    onChange={e => { setCustomerInfo({...customerInfo, n: e.target.value}); setInvalidFields({...invalidFields, n: false}); }} 
+  />
+
+  <input type="tel" placeholder="WhatsApp (com DDD)" 
+    className={`w-full bg-white/5 border p-3 rounded text-sm outline-none transition-colors ${invalidFields.ph ? 'border-red-500 bg-red-500/10 text-red-100 placeholder-red-300' : 'border-[#3385ff]/20'}`} 
+    value={customerInfo.ph} 
+    onChange={e => { setCustomerInfo({...customerInfo, ph: e.target.value}); setInvalidFields({...invalidFields, ph: false}); }} 
+  />
+
+  <input type="email" placeholder="E-mail" 
+    className={`w-full bg-white/5 border p-3 rounded text-sm outline-none transition-colors ${invalidFields.em ? 'border-red-500 bg-red-500/10 text-red-100 placeholder-red-300' : 'border-[#3385ff]/20'}`} 
+    value={customerInfo.em} 
+    onChange={e => { setCustomerInfo({...customerInfo, em: e.target.value}); setInvalidFields({...invalidFields, em: false}); }} 
+  />
+
+  {/* Aviso de Frete / Entrega */}
+  <div className="bg-[#3385ff]/10 border border-[#3385ff]/30 p-3 rounded-lg flex items-start gap-3 mt-4 mb-4">
+    <Icon name="truck" size={20} className="text-[#3385ff] shrink-0 mt-0.5" />
+    <p className="text-[11px] md:text-xs text-gray-300 font-mono leading-relaxed">
+      <strong className="text-[#3385ff]">ENTREGA:</strong> As camisetas serão entregues no dia da saída para o acampamento. Se você não for ao acampamento, entre em contato com nosso atendimento para agendar a retirada.
+    </p>
+  </div>
+
+  {/* Mensagem de Erro Vermelha (Se houver) */}
+  {checkoutError && (
+    <p className="text-red-400 font-mono text-xs text-center bg-red-500/10 p-2 rounded border border-red-500/20">
+      {checkoutError}
+    </p>
   )}
-</button>
-                                </div>
+
+  <div className="flex justify-between items-center font-bebas text-3xl">
+    <span>TOTAL:</span>
+    <span className="text-[#3385ff]">R$ {cart.length * 85},00</span>
+  </div>
+
+  {/* Botão de Finalizar Compra com Loading */}
+  <button 
+    onClick={handleCheckout} 
+    disabled={isProcessing}
+    className={`w-full py-4 rounded-lg font-bebas text-2xl font-bold flex justify-center items-center gap-2 transition-all ${
+      isProcessing 
+        ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
+        : 'bg-[#3385ff] text-black hover:brightness-110'
+    }`}
+  >
+    {isProcessing ? (
+      <>
+        <Icon name="loader-2" className="animate-spin" size={24} />
+        PROCESSANDO...
+      </>
+    ) : (
+      'FINALIZAR COMPRA'
+    )}
+  </button>
+</div>
                             </div>
                         </>
                     )}
