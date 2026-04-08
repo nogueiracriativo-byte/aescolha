@@ -144,6 +144,7 @@
             const [orders, setOrders] = useState([]);
             const [customerInfo, setCustomerInfo] = useState({ n: '', ph: '', em: '' });
             const [checkoutError, setCheckoutError] = useState('');
+             const [isProcessing, setIsProcessing] = useState(false);
             const [zoomedImg, setZoomedImg] = useState(null);
             const [designImgError, setDesignImgError] = useState(false);
 
@@ -214,61 +215,84 @@
                 }, 100);
             };
 
-            const handleCheckout = async () => {
-  if (cart.length === 0 || !customerInfo.n || !customerInfo.ph || !customerInfo.em) {
-    setCheckoutError('Preencha todos os campos.'); 
-    return;
-  }
-
-  const dateStr = new Date().toLocaleString('pt-BR');
-  const newOrder = {
-    id: Date.now(),
-    date: dateStr,
-    customer: customerInfo,
-    items: [...cart],
-    total: cart.length * 85,
-    paid: false
+             // Valida se tem pelo menos duas palavras (Nome e Sobrenome) com no mínimo 2 letras cada
+  const validateName = (name) => {
+    return /^[a-zA-ZÀ-ÿ]{2,}\s+[a-zA-ZÀ-ÿ]{2,}/.test(name.trim());
   };
 
-  const updatedOrders = [newOrder, ...orders];
-  setOrders(updatedOrders);
-  localStorage.setItem('camp_orders', JSON.stringify(updatedOrders));
+  // Remove caracteres especiais e checa se tem 11 números e se o DDD é seguido de 9
+  const validatePhone = (phone) => {
+    const numbers = phone.replace(/\D/g, '');
+    return numbers.length === 11 && numbers[2] === '9';
+  };
 
-  if (APPS_SCRIPT_URL) {
-    // 1. Criamos um ÚNICO pacote (payload) com o pedido inteiro
-    const payload = {
-      data: dateStr,
-      nome: customerInfo.n,
-      telefone: customerInfo.ph,
-      email: customerInfo.em,
-      total_pedido: cart.length * 85,
-      // Mapeamos o carrinho para extrair apenas o que vai pra planilha
-      itens: cart.map(item => ({
-        camiseta: item.name,
-        cor: item.color,
-        tamanho: item.size,
-        preco: 85
-      }))
+  // Validação padrão de e-mail (tem que ter @ e ponto)
+  const validateEmail = (email) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  const handleCheckout = async () => {
+    setCheckoutError(''); 
+
+    if (cart.length === 0) {
+      setCheckoutError('Seu carrinho está vazio.'); return;
+    }
+    if (!validateName(customerInfo.n)) {
+      setCheckoutError('Por favor, insira Nome e Sobrenome.'); return;
+    }
+    if (!validatePhone(customerInfo.ph)) {
+      setCheckoutError('Insira um celular válido com DDD (Ex: 11988887777).'); return;
+    }
+    if (!validateEmail(customerInfo.em)) {
+      setCheckoutError('Por favor, insira um e-mail válido.'); return;
+    }
+
+    setIsProcessing(true);
+
+    const dateStr = new Date().toLocaleString('pt-BR');
+    const newOrder = {
+      id: Date.now(),
+      date: dateStr,
+      customer: customerInfo,
+      items: [...cart],
+      total: cart.length * 85,
+      paid: false
     };
 
-    try {
-      // 2. Disparamos apenas UMA requisição, enviando o pacote todo
-      await fetch(APPS_SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
-      });
-    } catch (e) {
-      console.error("Erro ao enviar para o Sheets:", e);
+    const updatedOrders = [newOrder, ...orders];
+    setOrders(updatedOrders);
+    localStorage.setItem('camp_orders', JSON.stringify(updatedOrders));
+
+    if (APPS_SCRIPT_URL) {
+      const payload = {
+        data: dateStr,
+        nome: customerInfo.n,
+        telefone: customerInfo.ph,
+        email: customerInfo.em,
+        total_pedido: cart.length * 85,
+        itens: cart.map(item => ({
+          camiseta: item.name,
+          cor: item.color,
+          tamanho: item.size,
+          preco: 85
+        }))
+      };
+
+      try {
+        await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+      } catch (e) {
+        console.error("Erro ao enviar para o Sheets:", e);
+      }
     }
-  }
 
-  // 3. Após o envio terminar, redirecionamos para o Mercado Pago
-  const link = MP_LINKS[cart.length] || MP_LINKS[10];
-  window.location.href = link;
-};
-
+    const link = MP_LINKS[cart.length] || MP_LINKS[10];
+    window.location.href = link;
+  };
             const toggleOrderPaid = (orderId) => {
                 const updated = orders.map(o => o.id === orderId ? { ...o, paid: !o.paid } : o);
                 setOrders(updated);
@@ -450,7 +474,24 @@
                                     <input type="tel" placeholder="WhatsApp" className="w-full bg-white/5 border border-[#3385ff]/20 p-3 rounded text-sm outline-none" value={customerInfo.ph} onChange={e => setCustomerInfo({...customerInfo, ph: e.target.value})} />
                                     <input type="email" placeholder="E-mail" className="w-full bg-white/5 border border-[#3385ff]/20 p-3 rounded text-sm outline-none" value={customerInfo.em} onChange={e => setCustomerInfo({...customerInfo, em: e.target.value})} />
                                     <div className="flex justify-between items-center font-bebas text-3xl"><span>TOTAL:</span><span className="text-[#3385ff]">R$ {cart.length * 85},00</span></div>
-                                    <button onClick={handleCheckout} className="w-full py-4 bg-[#3385ff] text-black rounded-lg font-bebas text-2xl font-bold">FINALIZAR COMPRA</button>
+                                    <button 
+  onClick={handleCheckout} 
+  disabled={isProcessing}
+  className={`w-full py-4 rounded-lg font-bebas text-2xl font-bold flex justify-center items-center gap-2 transition-all ${
+    isProcessing 
+      ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
+      : 'bg-[#3385ff] text-black hover:brightness-110'
+  }`}
+>
+  {isProcessing ? (
+    <>
+      <Icon name="loader-2" className="animate-spin" size={24} />
+      PROCESSANDO...
+    </>
+  ) : (
+    'FINALIZAR COMPRA'
+  )}
+</button>
                                 </div>
                             </div>
                         </>
