@@ -67,11 +67,6 @@ tailwind.config = {
 <div id="root"></div>
 <script type="text/babel">
     const { useState, useEffect } = React;
-
-    // ============================================================
-    // PASSO FINAL: Cole aqui a URL do seu Google Apps Script
-    // (começa com https://script.google.com/macros/s/...)
-    // ============================================================
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzd3GMK6N6MtVCP2dooD1ONrn40LK5jmmlUbW6cmCwJGfBj-perg6XWD7cDf2ayQjs6/exec";
 
     const Icon = ({ name, size = 24, className = "" }) => {
@@ -214,10 +209,6 @@ tailwind.config = {
                 setIsCartOpen(true);
             }, 100);
         };
-
-        // ============================================================
-        // handleCheckout ATUALIZADO: salva local + envia para Google Sheets
-        // ============================================================
         const handleCheckout = () => {
             if (cart.length === 0 || !customerInfo.n || !customerInfo.ph || !customerInfo.em) {
                 setCheckoutError('Preencha todos os campos.'); return;
