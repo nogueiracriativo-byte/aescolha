@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <link rel="icon" type="image/png" sizes="32x32" href="img/logo.png">
@@ -214,55 +214,60 @@
                 }, 100);
             };
 
-            const handleCheckout = () => {
-                if (cart.length === 0 || !customerInfo.n || !customerInfo.ph || !customerInfo.em) {
-                    setCheckoutError('Preencha todos os campos.'); return;
-                }
+            const handleCheckout = async () => {
+  if (cart.length === 0 || !customerInfo.n || !customerInfo.ph || !customerInfo.em) {
+    setCheckoutError('Preencha todos os campos.'); 
+    return;
+  }
 
-                const dateStr = new Date().toLocaleString('pt-BR');
+  const dateStr = new Date().toLocaleString('pt-BR');
+  const newOrder = {
+    id: Date.now(),
+    date: dateStr,
+    customer: customerInfo,
+    items: [...cart],
+    total: cart.length * 85,
+    paid: false
+  };
 
-                const newOrder = {
-                    id: Date.now(),
-                    date: dateStr,
-                    customer: customerInfo,
-                    items: [...cart],
-                    total: cart.length * 85,
-                    paid: false
-                };
+  const updatedOrders = [newOrder, ...orders];
+  setOrders(updatedOrders);
+  localStorage.setItem('camp_orders', JSON.stringify(updatedOrders));
 
-                const updatedOrders = [newOrder, ...orders];
-                setOrders(updatedOrders);
-                localStorage.setItem('camp_orders', JSON.stringify(updatedOrders));
+  if (APPS_SCRIPT_URL) {
+    // 1. Criamos um ÚNICO pacote (payload) com o pedido inteiro
+    const payload = {
+      data: dateStr,
+      nome: customerInfo.n,
+      telefone: customerInfo.ph,
+      email: customerInfo.em,
+      total_pedido: cart.length * 85,
+      // Mapeamos o carrinho para extrair apenas o que vai pra planilha
+      itens: cart.map(item => ({
+        camiseta: item.name,
+        cor: item.color,
+        tamanho: item.size,
+        preco: 85
+      }))
+    };
 
-                // ENVIA CADA ITEM COMO UMA LINHA NA PLANILHA (nome, telefone, email, camiseta, cor, tamanho, etc)
-                if (APPS_SCRIPT_URL) {
-                    cart.forEach((item) => {
-                        const rowData = {
-                            data: dateStr,
-                            nome: customerInfo.n,
-                            telefone: customerInfo.ph,
-                            email: customerInfo.em,
-                            camiseta: item.name,
-                            cor: item.color,
-                            tamanho: item.size,
-                            preco: 85,
-                            total_pedido: cart.length * 85
-                        };
+    try {
+      // 2. Disparamos apenas UMA requisição, enviando o pacote todo
+      await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+    } catch (e) {
+      console.error("Erro ao enviar para o Sheets:", e);
+    }
+  }
 
-                        try {
-                            fetch(APPS_SCRIPT_URL, {
-                                method: 'POST',
-                                mode: 'no-cors',
-                                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                                body: JSON.stringify(rowData)
-                            });
-                        } catch (e) {}
-                    });
-                }
-
-                const link = MP_LINKS[cart.length] || MP_LINKS[10];
-                window.location.href = link;
-            };
+  // 3. Após o envio terminar, redirecionamos para o Mercado Pago
+  const link = MP_LINKS[cart.length] || MP_LINKS[10];
+  window.location.href = link;
+};
 
             const toggleOrderPaid = (orderId) => {
                 const updated = orders.map(o => o.id === orderId ? { ...o, paid: !o.paid } : o);
