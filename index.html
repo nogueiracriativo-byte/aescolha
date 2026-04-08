@@ -403,18 +403,36 @@
                                         <button onClick={closeModal} className="hidden md:block text-white/60 hover:text-white"><Icon name="x" size={32} /></button>
                                     </div>
 
-                                    {!designImgError && (
-                                        <div className="design-img-wrapper border border-[#3385ff]/20 rounded-xl overflow-hidden bg-white/5 aspect-[3/4] flex items-center justify-center cursor-pointer group" onClick={() => { window.history.pushState({ modal: 'zoom' }, ''); setZoomedImg(`img/${selectedProduct.id}_design.jpeg`); }}>
-                                            <img src={`img/${selectedProduct.id}_design.jpeg`} alt={`Estampa ${selectedProduct.name}`} onError={() => setDesignImgError(true)} className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500" />
-                                            <div className="absolute inset-0 bg-[#050a12]/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
-                                                <div className="bg-[#3385ff] text-black rounded-full p-4 flex flex-col items-center gap-1 shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform">
-                                                    <Icon name="zoom-in" size={24} />
-                                                    <span className="font-mono text-[10px] font-bold">VER ARTE</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
+                                    {/* === INÍCIO DA ARTE DA ESTAMPA === */}
+<div className="mb-6">
+  <p className="text-[10px] text-[#62768d] font-mono mb-3 uppercase tracking-widest">
+    Arte Original da Estampa
+  </p>
+  
+  <div 
+    className="relative border border-[#3385ff]/20 rounded-xl overflow-hidden bg-[#050a12] aspect-[3/4] flex items-center justify-center cursor-pointer group"
+    onClick={() => { 
+      window.history.pushState({ modal: 'zoom' }, ''); 
+      setZoomedImg(`img/${selectedProduct.id}_design.jpeg`); 
+    }}
+  >
+    {/* A imagem carrega aqui. O 'object-contain' garante que ela NUNCA seja cortada */}
+    <img 
+      src={`img/${selectedProduct.id}_design.jpeg`} 
+      alt={`Arte da estampa ${selectedProduct.name}`} 
+      className="w-full h-full object-contain p-2 transition-transform duration-500 group-hover:scale-105"
+    />
+    
+    {/* Efeito que escurece e mostra o botão de Zoom quando passa o dedo/mouse */}
+    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+      <div className="bg-[#3385ff] text-black rounded-full p-4 flex flex-col items-center gap-1 shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform">
+        <Icon name="zoom-in" size={24} />
+        <span className="font-mono text-[10px] font-bold">AMPLIAR ARTE</span>
+      </div>
+    </div>
+  </div>
+</div>
+{/* === FIM DA ARTE DA ESTAMPA === */}
                                     <div className="bg-white/5 p-5 rounded-xl border border-white/10 font-mono text-[12px] md:text-[13px] text-gray-400">
                                         <p className="text-[#3385ff] font-bold uppercase mb-3 tracking-widest text-[10px]">Tabela de Medidas</p>
                                         {selectedProduct.id === '1_reis' ? (
