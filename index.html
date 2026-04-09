@@ -88,10 +88,11 @@
         };
 
         const SHIRT_FILES = [
+      '1_reis_azul.jpeg','1_reis_branco.jpeg', '1_reis_preto.jpeg', '1_reis_roxo.jpeg', '1_reis_verde.jpeg',
       'escolha_obedecer_estonada_preto.jpeg', 'escolha_um_lado_offwhite.jpeg', 'escolha_um_lado_preto.jpeg',
             'every_day_is_a_deciosion_azul.jpeg', 'every_day_is_a_deciosion_bege.jpeg', 'every_day_is_a_deciosion_marrom.jpeg',
             'every_day_is_a_deciosion_offwhite.jpeg', 'every_day_is_a_deciosion_preto.jpeg', 'every_day_is_a_deciosion_roxo.jpeg',
-            'every_day_is_a_deciosion_verde.jpeg', 'if_the_lord_is_god_offwhite.jpeg', 'o_deus_que_sustenta_bege.jpeg',
+           'every_day_is_a_deciosion_verde.jpeg', 'if_the_lord_is_god_offwhite.jpeg', 'o_deus_que_sustenta_bege.jpeg',
             'o_proximo_azul.jpeg', 'o_proximo_marrom.jpeg', 'o_proximo_offwhite.jpeg', 'o_proximo_preto.jpeg', 'o_proximo_verde.jpeg',
             'o_que_fazeis_aqui_estonada_preto.jpeg', 'obedeca_o_chamado_offwhite.jpeg', 'obedeca_o_chamado_preto.jpeg',
             'quem_vem_depois_offwhite.jpeg', 'saia_de_cima_do_muro_offwhite.jpeg', 'who_is_next_estonada_preto.jpeg'
@@ -361,7 +362,7 @@
                                     <div className="aspect-square relative overflow-hidden">
                                         <img src={product.variants[0].img} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                         <div className="absolute top-3 right-3 bg-[#3385ff] text-black font-mono text-[10px] font-bold px-2 py-1 rounded">
-                                            {product.id === '1_reis' ? 'DRY-FIT' : 'OVERSIZED'}
+                                            {product.id === '1_reis' ? 'OVERSIZED' : 'OVERSIZED'}
                                         </div>
                                     </div>
                                     <div className="p-5 text-center">
@@ -395,7 +396,7 @@
                                         <div>
                                             <div className="flex items-center gap-3">
                                                 <h2 className="font-bebas text-3xl md:text-5xl tracking-wide">{selectedProduct.name}</h2>
-                                                <span className="bg-[#3385ff] text-black font-mono text-[9px] md:text-[10px] font-bold px-2 py-1 rounded">{selectedProduct.id === '1_reis' ? 'DRY-FIT' : 'OVERSIZED'}</span>
+                                                <span className="bg-[#3385ff] text-black font-mono text-[9px] md:text-[10px] font-bold px-2 py-1 rounded">{selectedProduct.id === '1_reis' ? 'OVERSIZED' : 'OVERSIZED'}</span>
                                             </div>
                                             <p className="text-xl md:text-3xl text-[#3385ff] font-bebas mt-1">R$ 85,00</p>
                                         </div>
