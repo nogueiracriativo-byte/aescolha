@@ -207,7 +207,7 @@
                 if (!selectedSize) { setCheckoutError('Por favor, selecione um tamanho.'); return; }
                 const activeImg = currentModalImages[activeImgIdx];
                 const colorName = selectedProduct.variants.find(v => v.img === activeImg)?.color || "Padrão";
-                const newItem = { id: `\( {selectedProduct.id}- \){Date.now()}`, name: selectedProduct.name, size: selectedSize, color: colorName.toUpperCase(), img: activeImg, price: 85 };
+                const newItem = { id: `${selectedProduct.id}-${Date.now()}`, name: selectedProduct.name, size: selectedSize, color: colorName.toUpperCase(), img: activeImg, price: 85 };
                 setCart([...cart, newItem]);
                 closeModal();
                 setTimeout(() => {
@@ -437,7 +437,7 @@
                                         <p className="text-[#3385ff] font-bold uppercase mb-3 tracking-widest text-[10px]">Tabela de Medidas</p>
                                         {selectedProduct.id === '1_reis' ? (
                                             <div className="space-y-1">
-                                                <<p><strong>P:</strong> A 79 | B 67 | C 23</p>
+                                                <p><strong>P:</strong> A 79 | B 67 | C 23</p>
                                                 <p><strong>M:</strong> A 80 | B 69 | C 24</p>
                                                 <p><strong>G:</strong> A 82 | B 72 | C 25</p>
                                                 <p><strong>GG:</strong> A 84 | B 74 | C 26</p>
